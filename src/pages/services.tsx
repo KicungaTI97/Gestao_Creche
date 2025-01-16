@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import foto1 from '../assets/berçário.jpg'
 import foto2 from '../assets/maternal.jpg'
 import foto3 from '../assets/jardim.jpg'
+import { WhatsAppChat } from "../components/WhatsAppButton";
 
 export function Services() {
   return (
@@ -58,6 +59,7 @@ export function Services() {
           </div>
         </div>
       </section>
+           <WhatsAppChat/> 
     </>
   )
 }

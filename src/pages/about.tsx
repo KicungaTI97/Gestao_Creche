@@ -1,4 +1,5 @@
 import React from 'react';
+import { WhatsAppChat } from '../components/WhatsAppButton';
 
 export function About() {
   return (
@@ -35,6 +36,7 @@ export function About() {
         <p>Telefone: (XX) XXXX-XXXX</p>
         <p>Email: contato@crechekids.com.br</p>
       </div>
+      <WhatsAppChat/>
     </div>
   );
 }

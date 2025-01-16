@@ -3,7 +3,7 @@ import {SignIn} from './pages/auth/sign-in'
 import { Home } from "./components/Home";
 import { Navbar } from "./components/Navbar";
 import { FormRegisterStudent } from "./pages/_layouts/register/formRegisterStudent"; 
-import DashboardEscolar from "./pages/auth/dashboard";
+import { DashboardEscolar } from "./pages/auth/dashboard";
 import Footer from "./components/Footer";
 import { About } from "./pages/about";
 import { Services } from "./pages/services";

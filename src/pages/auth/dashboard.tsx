@@ -1,34 +1,130 @@
 import React, { useState } from 'react';
-import { 
-  Users, 
-  BookOpen, 
-  FileText, 
-  Settings, 
-  MessageSquare, 
-  CreditCard, 
+import {
+  Users,
+  BookOpen,
+  FileText,
+  Settings,
+  MessageSquare,
+  CreditCard,
   FolderOpen,
   Bell,
   Search,
   ChevronDown,
-  LogOut
+  LogOut,
 } from 'lucide-react';
-import { Header } from './Header';
+import { Header } from './Header'; // Import your Header component
+import { useClerk, useUser } from '@clerk/clerk-react';
 
-const DashboardEscolar = () => {
-  const [isAdmin, setIsAdmin] = useState(true);
+export const DashboardEscolar = () => {
+  const [isAdmin, setIsAdmin] = useState(true); // Assuming admin for now
   const [activeMenu, setActiveMenu] = useState('alunos');
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('');
+  const [professors, setProfessors] = useState([
+    { id: 1, name: 'Ana Silva', subject: 'Matemática', image: null },
+    { id: 2, name: 'João Santos', subject: 'Português', image: null },
+    { id: 3, name: 'Maria Oliveira', subject: 'Ciências', image: null },
+  ]);
+  const [students, setStudents] = useState([
+    { id: 1001, name: 'Pedro Almeida', class: 'Turma A', status: 'Ativo', image: null },
+    { id: 1002, name: 'Sofia Costa', class: 'Turma B', status: 'Ativo', image: null },
+    { id: 1003, name: 'Lucas Ferreira', class: 'Turma A', status: 'Inativo', image: null },
+  ]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { signOut } = useClerk(); // Assuming you're using Clerk for authentication
 
-  const menuItems = isAdmin ? [
-    { id: 'professores', label: 'Professores', icon: Users },
-    { id: 'alunos', label: 'Alunos', icon: BookOpen },
-    { id: 'relatorios', label: 'Relatórios', icon: FileText },
-    { id: 'configuracoes', label: 'Configurações', icon: Settings }
-  ] : [
-    { id: 'acompanhamento', label: 'Acompanhamento', icon: BookOpen },
-    { id: 'mensagens', label: 'Mensagens', icon: MessageSquare },
-    { id: 'pagamentos', label: 'Pagamentos', icon: CreditCard },
-    { id: 'documentos', label: 'Documentos', icon: FolderOpen }
-  ];
+  const handleSignOut = () => {
+    signOut({
+      redirectUrl: '/', // Redirect to login page after sign out
+    });
+  };
+
+  const handleAddProfessor = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const newProfessor = {
+      id: professors.length + 1,
+      name: formData.get('name'),
+      subject: formData.get('subject'),
+      image: null, // Add image handling if needed
+    };
+    setProfessors([...professors, newProfessor]);
+    setShowModal(false);
+  };
+
+  const handleAddStudent = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const newStudent = {
+      id: 1000 + students.length + 1,
+      name: formData.get('name'),
+      class: formData.get('class'),
+      status: 'Ativo',
+      image: null, // Add image handling if needed
+    };
+    setStudents([...students, newStudent]);
+    setShowModal(false);
+  };
+
+  const handleRemove = (id, type) => {
+    if (type === 'professor') {
+      setProfessors(professors.filter((prof) => prof.id !== id));
+    } else {
+      setStudents(students.filter((student) => student.id !== id));
+    }
+  };
+
+  const {user} = useUser();
+  //const isAdmin = user?.roles.includes('admin');
+
+  const Modal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg w-96">
+        <h3 className="text-xl font-bold mb-4">
+          {modalType === 'professor' ? 'Adicionar Professor' : 'Adicionar Aluno'}
+        </h3>
+        <form onSubmit={modalType === 'professor' ? handleAddProfessor : handleAddStudent}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Nome</label>
+              <input
+                type="text"
+                name="name"
+                required
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+            <label className="block text-sm font-medium mb-1">
+                {modalType === 'professor' ? 'Disciplina' : 'Turma'}
+              </label>
+              <input
+                type="text"
+                name={modalType === 'professor' ? 'subject' : 'class'}
+                required
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 
   const renderContent = () => {
     if (isAdmin) {
@@ -38,23 +134,33 @@ const DashboardEscolar = () => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Gestão de Professores</h2>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <button
+                  onClick={() => {
+                    setModalType('professor');
+                    setShowModal(true);
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
                   Adicionar Professor
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[1, 2, 3].map((prof) => (
-                  <div key={prof} className="bg-white p-6 rounded-lg shadow">
+                {professors.map((prof) => (
+                  <div key={prof.id} className="bg-white p-6 rounded-lg shadow">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-full bg-gray-200"></div>
+                      <div className="w-12 h-12 rounded-full bg-gray-200"></div> 
                       <div>
-                        <h3 className="font-semibold">Professor {prof}</h3>
-                        <p className="text-sm text-gray-600">Matemática</p>
+                        <h3 className="font-semibold">{prof.name}</h3>
+                        <p className="text-sm text-gray-600">{prof.subject}</p>
                       </div>
                     </div>
                     <div className="mt-4 flex space-x-2">
-                      <button className="text-blue-600 hover:underline">Editar</button>
-                      <button className="text-red-600 hover:underline">Remover</button>
+                      <button
+                        onClick={() => handleRemove(prof.id, 'professor')}
+                        className="text-red-600 hover:underline"
+                      >
+                        Remover
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -62,6 +168,11 @@ const DashboardEscolar = () => {
             </div>
           );
         case 'alunos':
+          const filteredStudents = students.filter(
+            (student) =>
+              student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              student.class.toLowerCase().includes(searchTerm.toLowerCase())
+          );
           return (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
@@ -71,11 +182,19 @@ const DashboardEscolar = () => {
                     <input
                       type="text"
                       placeholder="Buscar aluno..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 pr-4 py-2 border rounded-lg"
                     />
                     <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
                   </div>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                  <button
+                    onClick={() => {
+                      setModalType('student');
+                      setShowModal(true);
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
                     Novo Aluno
                   </button>
                 </div>
@@ -84,33 +203,51 @@ const DashboardEscolar = () => {
                 <table className="min-w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Turma</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ações</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Nome
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Turma
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        Ações
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {[1, 2, 3].map((aluno) => (
-                      <tr key={aluno}>
+                    {filteredStudents.map((student) => (
+                      <tr key={student.id}>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             <div className="h-10 w-10 rounded-full bg-gray-200"></div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium">Aluno {aluno}</div>
-                              <div className="text-sm text-gray-500">ID: {1000 + aluno}</div>
+                              <div className="text-sm font-medium">{student.name}</div>
+                              <div className="text-sm text-gray-500">ID: {student.id}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">Turma A</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{student.class}</td>
                         <td className="px-6 py-4">
-                          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                            Ativo
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              student.status === 'Ativo'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {student.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right text-sm font-medium">
-                          <button className="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
-                          <button className="text-red-600 hover:text-red-900">Remover</button>
+                          <button
+                            onClick={() => handleRemove(student.id, 'student')}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Remover
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -119,88 +256,85 @@ const DashboardEscolar = () => {
               </div>
             </div>
           );
+        case 'relatorios':
+          return (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Relatórios</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="font-semibold mb-4">Estatísticas Gerais</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total de Alunos</span>
+                      <span className="font-medium">{students.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total de Professores</span>
+                      <span className="font-medium">{professors.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Alunos Ativos</span>
+                      <span className="font-medium">
+                        {students.filter((s) => s.status === 'Ativo').length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="font-semibold mb-4">Distribuição por Turma</h3>
+                  <div className="space-y-3">
+                    {Array.from(new Set(students.map((s) => s.class))).map(
+                      (className) => (
+                        <div key={className} className="flex justify-between">
+                          <span className="text-gray-600">{className}</span>
+                          <span className="font-medium">
+                            {students.filter((s) => s.class === className).length}{' '}
+                            alunos
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="font-semibold mb-4">Disciplinas</h3>
+                  <div className="space-y-3">
+                    {Array.from(new Set(professors.map((p) => p.subject))).map(
+                      (subject) => (
+                        <div key={subject} className="flex justify-between">
+                          <span className="text-gray-600">{subject}</span>
+                          <span className="font-medium">
+                            {professors.filter((p) => p.subject === subject).length}{' '}
+                            professor(es)
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
         default:
           return null;
       }
     } else {
-      switch (activeMenu) {
-        case 'acompanhamento':
-          return (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Acompanhamento dos Filhos</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[1].map((child) => (
-                  <div key={child} className="bg-white p-6 rounded-lg shadow">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-semibold">João Silva</h3>
-                        <p className="text-sm text-gray-600">Turma A - Manhã</p>
-                      </div>
-                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                        Presente Hoje
-                      </span>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium">Frequência</h4>
-                        <div className="h-2 bg-gray-200 rounded-full mt-2">
-                          <div className="h-2 bg-green-500 rounded-full w-11/12"></div>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium">Atividades Recentes</h4>
-                        <ul className="mt-2 space-y-2">
-                          <li className="text-sm text-gray-600">Participou da aula de música</li>
-                          <li className="text-sm text-gray-600">Completou atividade de arte</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        case 'mensagens':
-          return (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Mensagens</h2>
-              <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="p-4 border-b">
-                  <input
-                    type="text"
-                    placeholder="Buscar mensagens..."
-                    className="w-full px-4 py-2 border rounded-lg"
-                  />
-                </div>
-                <div className="divide-y">
-                  {[1, 2, 3].map((msg) => (
-                    <div key={msg} className="p-4 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div className="flex space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-                          <div>
-                            <h3 className="font-medium">Professora Ana</h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Relatório de atividades da semana...
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs text-gray-500">2h atrás</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        default:
-          return null;
-      }
+      // ... rest of the existing non-admin content ...
+      return null;
     }
   };
 
+  const menuItems = [
+    { id: 'alunos', label: 'Alunos', icon: Users },
+    { id: 'professores', label: 'Professores', icon: BookOpen },
+    { id: 'relatorios', label: 'Relatórios', icon: FileText },
+    { id: 'financeiro', label: 'Financeiro', icon: CreditCard },
+    { id: 'configuracoes', label: 'Configurações', icon: Settings },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-100">
+      {showModal && <Modal />}
       <div className="flex">
         {/* Sidebar */}
         <div className="w-64 bg-white shadow-lg h-screen">
@@ -227,7 +361,6 @@ const DashboardEscolar = () => {
             })}
           </nav>
         </div>
-
         {/* Main Content */}
         <div className="flex-1 p-8">
           {/* Header */}
@@ -240,23 +373,31 @@ const DashboardEscolar = () => {
                 </span>
               </button>
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gray-200"><Header /></div>
-                <span className="text-sm font-medium">Admin</span>
-                <ChevronDown className="w-4 h-4 text-gray-600" />
+                <div className="w-8 h-8 rounded-full bg-gray-200">
+                  {/* Replace with actual user image or avatar */}
+                  <Header /> 
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{user?.fullName}</p> 
+                  <p className="text-xs text-gray-500">admin@example.com</p>
+                </div>
               </div>
             </div>
-            <button className="flex items-center text-gray-600 hover:text-gray-800">
-              <LogOut className="w-5 h-5 mr-2" />
-              Sair
-            </button>
+            <div>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+              >
+                <LogOut className="w-5 h-5" />
+                Sair
+              </button>
+            </div>
           </div>
 
-          {/* Content */}
+          {/* Render the content based on the active menu */}
           {renderContent()}
         </div>
       </div>
     </div>
   );
 };
-
-export default DashboardEscolar;

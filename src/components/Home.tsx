@@ -9,7 +9,7 @@ import image6 from '../assets/image6.jpg'
 import profile from '../assets/profile-pic.png'
 import { NavLink} from 'react-router-dom'
 import { MdOutlineKeyboardArrowRight } from 'react-icons/md'
-import { Calendar } from 'lucide-react'
+import { Calendar, PhoneCallIcon } from 'lucide-react'
 import { WhatsAppChat } from './WhatsAppButton'
 
 export function Home() {
@@ -125,8 +125,10 @@ export function Home() {
           {...fadeInUp}
           className='gap-2'
         >
-          <button className="hover:border-blue-500 py-3 px-6 border transition-colors">Saiba mais</button>
-          <button className="hover:border-blue-500 py-3 px-6 transition-colors">Fale conosco</button>
+          <div className='flex gap-4'>
+            <button className="border-2 border-blue-500 text-muted px-8 py-3 rounded-full hover:bg-gray-50 transition-colors">Saiba Mais</button>
+            <button className="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-colors  items-center flex gap-1"><PhoneCallIcon size={18}/> Fale conosco</button>
+          </div>
         </motion.div>
       </section>
 

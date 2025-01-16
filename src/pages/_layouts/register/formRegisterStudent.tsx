@@ -3,6 +3,7 @@ import { BiCheck } from 'react-icons/bi';
 import { CiCircleAlert } from 'react-icons/ci';
 
 import { toast, ToastContainer } from 'react-toastify';
+import { WhatsAppChat } from '../../../components/WhatsAppButton';
 
 export const FormRegisterStudent = () => {
   const notify = () => toast("Registro realizado com sucesso!")
@@ -314,6 +315,7 @@ export const FormRegisterStudent = () => {
           </form>
         </div>
       </div>
+      <WhatsAppChat/>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { Mail, MapPin, Phone } from "lucide-react";
+import { WhatsAppChat } from "../components/WhatsAppButton";
 
 export function Contacts() {
   return (
@@ -73,6 +74,7 @@ export function Contacts() {
           </div>
         </div>
       </section>
+            <WhatsAppChat/>
     </div>
   )
 }
